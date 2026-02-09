@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenClaw Toolbox</title>
+  <meta name="description" content="A multi-function toolbox with gold price and tech news">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <h1>🧰 OpenClaw Toolbox</h1>
+      <p>實用工具箱 · 持續更新中</p>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Tool Grid -->
+    <div class="tool-grid">
+      
+      <!-- Gold Price Card -->
+      <div class="card gold">
+        <div class="card-header gold">
+          <div class="card-title">
+            <span class="icon">🥇</span>
+            <div>
+              <div>黃金價格</div>
+              <small>24K 每克黃金</small>
+            </div>
+          </div>
+          <button class="btn btn-icon" onclick="fetchGoldPrice()" id="goldRefresh">
+            🔄
+          </button>
+        </div>
+        <div class="card-body">
+          <div id="goldContent">
+            <div class="spinner"></div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <span>數據來源: GoldAPI.io</span>
+          <span class="badge badge-warning">即時報價</span>
+        </div>
+      </div>
+
+      <!-- Tech News Card -->
+      <div class="card tech">
+        <div class="card-header tech">
+          <div class="card-title">
+            <span class="icon">📰</span>
+            <div>
+              <div>科技新聞</div>
+              <small>最新科技動態</small>
+            </div>
+          </div>
+          <button class="btn btn-icon" onclick="fetchTechNews()" id="newsRefresh">
+            🔄
+          </button>
+        </div>
+        <div class="card-body">
+          <div id="newsContent">
+            <div class="spinner secondary"></div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <span id="newsUpdate">更新時間: --</span>
+          <span class="badge badge-secondary" id="newsCount">0 條新聞</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="icon">⚡</span>
+          <div>
+            <div>快速連結</div>
+            <small>常用工具</small>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="quick-links">
+          <a href="#gold" class="quick-link">
+            <span class="quick-icon" style="color: #fbbf24;">🥇</span>
+            <span>黃金價格</span>
+          </a>
+          <a href="#news" class="quick-link">
+            <span class="quick-icon" style="color: #a855f7;">📰</span>
+            <span>科技新聞</span>
+          </a>
+          <a href="#" class="quick-link">
+            <span class="quick-icon" style="color: #22c55e;">🌤️</span>
+            <span>天氣預報</span>
+          </a>
+          <a href="#" class="quick-link">
+            <span class="quick-icon" style="color: #22c55e;">📈</span>
+            <span>股票行情</span>
+          </a>
+          <a href="#" class="quick-link">
+            <span class="quick-icon" style="color: #3b82f6;">🤖</span>
+            <span>AI 工具</span>
+          </a>
+          <a href="#" class="quick-link">
+            <span class="quick-icon" style="color: #9ca3af;">💻</span>
+            <span>開發工具</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- System Status -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="icon">🤖</span>
+          <div>
+            <div>OpenClaw 狀態</div>
+            <small>系統監控</small>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="status-grid">
+          <div class="status-item">
+            <div class="status-label">CPU 使用率</div>
+            <div class="status-value success">23%</div>
+          </div>
+          <div class="status-item">
+            <div class="status-label">記憶體</div>
+            <div class="status-value primary">4.2 GB</div>
+          </div>
+          <div class="status-item">
+            <div class="status-label">運行時間</div>
+            <div class="status-value secondary">5 天</div>
+          </div>
+        </div>
+      </div>
+      <div class="card-footer simple">
+        <p>Powered by OpenClaw AI Assistant</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>Powered by OpenClaw · Built with ❤️</p>
+    <a href="https://github.com/WaiTengChong/toolbox" target="_blank">GitHub Repository</a>
+  </footer>
+
+  <script>
+    const GRAMS_PER_OUNCE = 31.1035;
+    const USD_TO_CNY = 7.25;
+    const API_KEY = 'goldapi-jp0nsmld26yav-io';
+
+    // Gold Price Functions
+    async function fetchGoldPrice() {
+      const btn = document.getElementById('goldRefresh');
+      const content = document.getElementById('goldContent');
+      btn.disabled = true;
+      btn.textContent = '⏳';
+      
+      try {
+        const response = await fetch('https://www.goldapi.io/api/XAU/USD', {
+          headers: { 'x-access-token': API_KEY }
+        });
+        
+        if (!response.ok) throw new Error('API 請求失敗');
+        
+        const data = await response.json();
+        const pricePerOunceUSD = data.price;
+        const pricePerOunceCNY = pricePerOunceUSD * USD_TO_CNY;
+        const pricePerGram = pricePerOunceCNY / GRAMS_PER_OUNCE;
+        
+        const now = new Date();
+        const timeStr = now.toLocaleString('zh-TW', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        });
+        
+        content.innerHTML = `
+          <div class="gold-price">¥${pricePerGram.toFixed(2)}</div>
+          <div class="gold-label">更新時間: ${timeStr}</div>
+        `;
+      } catch (error) {
+        console.error('Gold error:', error);
+        const now = new Date();
+        const timeStr = now.toLocaleString('zh-TW', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        });
+        content.innerHTML = `
+          <div class="gold-price" style="font-size: 2rem;">載入失敗</div>
+          <div class="gold-label">請點擊刷新按鈕重試</div>
+          <div class="gold-label">${timeStr}</div>
+        `;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🔄';
+      }
+    }
+
+    // Tech News Functions
+    async function fetchTechNews() {
+      const btn = document.getElementById('newsRefresh');
+      const content = document.getElementById('newsContent');
+      const countEl = document.getElementById('newsCount');
+      const updateEl = document.getElementById('newsUpdate');
+      btn.disabled = true;
+      btn.textContent = '⏳';
+      
+      try {
+        const response = await fetch(
+          'https://api.brave.com/v1/news?category=technology&count=10',
+          { headers: { 'Accept': 'application/json' }        );
+        
+        if (!response.ok) throw new Error('News API failed');
+        
+        const data = await response.json();
+        const articles = data.articles || [];
+        
+        const now = new Date();
+        const timeStr = now.toLocaleString('zh-TW', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        });
+        
+        countEl.textContent = `${articles.length} 條新聞`;
+        updateEl.textContent = `更新時間: ${timeStr}`;
+        
+        if (articles.length === 0) throw new Error('No articles');
+        
+        content.innerHTML = articles.slice(0, 6).map(item => `
+          <a href="${item.url || '#'}" target="_blank" class="news-item">
+            <div class="news-title">${item.title || '無標題'}</div>
+            <div class="news-meta">
+              <span class="news-source">${item.source || '未知來源'}</span>
+            </div>
+          </a>
+        `).join('');
+      } catch (error) {
+        console.error('News error:', error);
+        
+        // Demo news
+        const demoNews = [
+          { title: 'OpenAI 發布 GPT-5 預覽版', source: 'TechCrunch' },
+          { title: 'Apple 將推摺疊 iPhone', source: 'The Verge' },
+          { title: 'NVIDIA RTX 50 系列顯卡登場', source: "Tom's Hardware" },
+          { title: 'SpaceX Starship 成功發射', source: 'Space.com' },
+          { title: 'Google Gemini 2.0 正式推出', source: '9to5Google' },
+          { title: '特斯拉 FSD V13 更新', source: 'Electrek' }
+        ];
+        
+        const now = new Date();
+        const timeStr = now.toLocaleString('zh-TW', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        });
+        
+        countEl.textContent = `${demoNews.length} 條新聞`;
+        updateEl.textContent = `更新時間: ${timeStr} (示例)`;
+        
+        content.innerHTML = demoNews.map(item => `
+          <a href="#" target="_blank" class="news-item">
+            <div class="news-title">${item.title}</div>
+            <div class="news-meta">
+              <span class="news-source">${item.source}</span>
+            </div>
+          </a>
+        `).join('') + `
+          <div style="text-align: center; padding: 0.5rem; color: #9ca3af; font-size: 0.8rem;">
+            ⚠️ 使用示例數據
+          </div>
+        `;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🔄';
+      }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchGoldPrice();
+      fetchTechNews();
+    });
+  </script>
+</body>
+</html>
